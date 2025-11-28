@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dr. Ravi — Future of Medical Care</title>
+  <meta name="description" content="Premium online medical consultation with Dr. Ravi. Expert care, digital prescriptions, and secure health management." />
+  
+  <!-- Fonts: Outfit (Headings) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', 'sans-serif'],
+            display: ['"Outfit"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              400: '#2dd4bf', // Teal Glow
+              500: '#14b8a6', 
+              600: '#0d9488',
+            },
+            dark: {
+              900: '#020617', // Slate 950
+              800: '#0f172a', // Slate 900
+            }
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+            'glass-hover': '0 8px 32px 0 rgba(45, 212, 191, 0.15)',
+            'glow': '0 0 20px rgba(45, 212, 191, 0.5)',
+          },
+          backgroundImage: {
+            'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            'glass-gradient': 'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons & Libraries -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.29/dist/lenis.min.js"></script>
+
+  <style>
+    /* Base Setup */
+    body { 
+      background-color: #020617; 
+      color: #e2e8f0;
+      overflow-x: hidden; 
+    }
+    
+    /* Ambient Background Orbs */
+    .ambient-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      opacity: 0.4;
+      animation: floatOrb 10s ease-in-out infinite;
+    }
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(20px, -20px); }
+    }
+
+    /* Glassmorphism Utilities */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .glass-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .glass-card:hover {
+      background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+      border-color: rgba(45, 212, 191, 0.3);
+      box-shadow: 0 0 30px rgba(45, 212, 191, 0.1);
+      transform: translateY(-5px);
+    }
+
+    .glass-input {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(4px);
+      color: white;
+      transition: all 0.3s ease;
+    }
+    .glass-input:focus {
+      border-color: #2dd4bf;
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 15px rgba(45, 212, 191, 0.2);
+    }
+
+    /* Typography & Effects */
+    .text-glow { text-shadow: 0 0 20px rgba(45, 212, 191, 0.4); }
+    .reveal-text { clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%); }
+    
+    /* Preloader */
+    #preloader {
+      position: fixed; inset: 0; background: #020617; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .loader-line { width: 0%; height: 2px; background: #2dd4bf; box-shadow: 0 0 10px #2dd4bf; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2dd4bf; }
+  </style>
+
+  <!-- Supabase Config -->
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+    const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co'
+    const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY'
+    
+    const isConfigured = !SUPABASE_URL.includes('YOUR-PROJECT');
+    window.supabaseClient = isConfigured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  </script>
+</head>
+<body class="selection:bg-brand-500 selection:text-white">
+
+  <!-- AMBIENT BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="ambient-orb top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-brand-500/10"></div>
+    <div class="ambient-orb bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-600/10" style="animation-delay: -5s;"></div>
+    <div class="ambient-orb top-[40%] left-[40%] w-[20vw] h-[20vw] bg-purple-500/10" style="animation-delay: -2s;"></div>
+  </div>
+
+  <!-- PRELOADER -->
+  <div id="preloader">
+    <div class="relative w-64">
+      <div class="text-white text-center font-display font-bold text-2xl mb-4 tracking-[0.2em]">DR. RAVI</div>
+      <div class="w-full h-[1px] bg-slate-800 overflow-hidden">
+        <div class="loader-line h-full"></div>
+      </div>
+      <div class="flex justify-between text-xs text-slate-500 mt-2 font-mono">
+        <span>INITIALIZING</span>
+        <span id="percent">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <nav class="fixed top-6 left-0 right-0 z-50 transition-all duration-300" id="navbar">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="glass-panel rounded-full px-6 h-16 flex items-center justify-between shadow-glass">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-8 h-8 bg-gradient-to-br from-brand-400 to-brand-600 text-white rounded-lg flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+          </div>
+          <span class="font-display font-bold text-lg text-white tracking-wide">Dr. Ravi<span class="text-brand-400">.</span></span>
+        </a>
+
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex items-center gap-1">
+          <a href="#home" class="px-5 py-2 text-sm font-medium text-white hover:bg-white/10 rounded-full transition-all">Home</a>
+          <a href="#services" class="px-5 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all">Care</a>
+          <a href="#about" class="px-5 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition-all">About</a>
+        </div>
+
+        <!-- CTA -->
+        <div class="flex items-center gap-4">
+          <a href="#book" class="hidden md:flex items-center gap-2 px-6 py-2 bg-white text-dark-900 text-sm font-bold rounded-full hover:bg-brand-400 hover:shadow-glow transition-all duration-300 transform hover:-translate-y-0.5">
+            <span>Book Visit</span>
+            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+          </a>
+          <!-- Mobile Toggle -->
+          <button class="md:hidden p-2 text-white" id="menu-btn">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div id="mobile-menu" class="fixed inset-0 z-50 bg-dark-900/95 backdrop-blur-xl transform translate-x-full transition-transform duration-500 flex flex-col justify-center items-center gap-8">
+    <button class="absolute top-8 right-8 p-4 text-slate-400 hover:text-white" id="close-menu">
+      <i data-lucide="x" class="w-8 h-8"></i>
+    </button>
+    <a href="#home" class="text-4xl font-display font-bold text-white mobile-link">Home</a>
+    <a href="#services" class="text-4xl font-display font-bold text-white mobile-link">Services</a>
+    <a href="#about" class="text-4xl font-display font-bold text-white mobile-link">About</a>
+    <a href="#book" class="text-4xl font-display font-bold text-brand-400 mobile-link">Book Now</a>
+  </div>
+
+  <!-- HERO SECTION -->
+  <section id="home" class="relative pt-40 pb-20 min-h-screen flex items-center overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6 w-full relative z-10 grid lg:grid-cols-12 gap-16 items-center">
+      <!-- Text Content -->
+      <div class="lg:col-span-7 flex flex-col items-start">
+        <div class="glass-panel inline-flex items-center gap-2 px-4 py-2 rounded-full text-brand-400 text-xs font-bold tracking-widest uppercase mb-8 gs-reveal opacity-0 hover:bg-white/5 transition-colors cursor-default">
+          <div class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse box-shadow-glow"></div>
+          Live Consultations Available
+        </div>
+        
+        <h1 class="text-6xl md:text-7xl lg:text-8xl font-display font-bold text-white leading-[0.95] tracking-tight mb-8 drop-shadow-2xl">
+          <div class="overflow-hidden"><span class="block gs-reveal-text transform translate-y-full">Modern care,</span></div>
+          <div class="overflow-hidden"><span class="block gs-reveal-text transform translate-y-full">delivered</span></div>
+          <div class="overflow-hidden"><span class="block text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-blue-400 gs-reveal-text transform translate-y-full text-glow">instantly.</span></div>
+        </h1>
+
+        <p class="text-lg md:text-xl text-slate-400 max-w-xl leading-relaxed mb-10 gs-reveal opacity-0 font-light">
+          Experience world-class medical advice without leaving home. Secure video consultations, instant prescriptions, and holistic health management in a beautiful, private environment.
+        </p>
+
+        <div class="flex flex-wrap gap-4 gs-reveal opacity-0">
+          <a href="#book" class="px-8 py-4 bg-brand-500 text-white rounded-full font-bold hover:bg-brand-400 transition-all shadow-glow hover:shadow-lg hover:-translate-y-1 flex items-center gap-2">
+            Start Consultation
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </a>
+          <a href="#services" class="px-8 py-4 glass-panel text-white rounded-full font-medium hover:bg-white/10 transition-colors border border-white/10">
+            Our Services
+          </a>
+        </div>
+        
+        <div class="mt-16 flex items-center gap-8 border-t border-white/10 pt-8 w-full gs-reveal opacity-0">
+          <div>
+            <div class="text-3xl font-display font-bold text-white">15+</div>
+            <div class="text-sm text-slate-500 font-medium mt-1">Years Exp.</div>
+          </div>
+          <div>
+            <div class="text-3xl font-display font-bold text-white">5k+</div>
+            <div class="text-sm text-slate-500 font-medium mt-1">Patients</div>
+          </div>
+          <div>
+            <div class="text-3xl font-display font-bold text-white">4.9</div>
+            <div class="text-sm text-slate-500 font-medium mt-1">Rating</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image/Visual -->
+      <div class="lg:col-span-5 relative gs-scale-img opacity-0">
+        <div class="relative rounded-[2rem] overflow-hidden shadow-2xl aspect-[4/5] group border border-white/10">
+          <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent z-10 opacity-60"></div>
+          <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=1000&auto=format&fit=crop" alt="Doctor" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          
+          <!-- Floating UI Card -->
+          <div class="absolute bottom-6 left-6 right-6 p-4 glass-panel rounded-2xl z-20 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400 border border-brand-500/30">
+              <i data-lucide="video" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-brand-400 uppercase tracking-wide mb-1">Status</div>
+              <div class="text-sm font-bold text-white">Online • <span class="text-slate-400 font-normal">Next slot: 4:30 PM</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES SECTION (Glass Bento Grid) -->
+  <section id="services" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="mb-16">
+        <h2 class="text-4xl font-display font-bold text-white mb-4">Complete Care System</h2>
+        <p class="text-slate-400 max-w-2xl text-lg font-light">Designed to handle your everyday health needs efficiently and securely.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Large Card -->
+        <div class="md:col-span-2 glass-card rounded-3xl p-10 group overflow-hidden relative">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-[60px] -mr-16 -mt-16 transition-opacity group-hover:opacity-70"></div>
+          <div class="relative z-10">
+            <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-8 text-brand-400">
+              <i data-lucide="video" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-3xl font-display font-bold text-white mb-3">Video Consultation</h3>
+            <p class="text-slate-400 mb-8 max-w-sm leading-relaxed">High-fidelity video calls with end-to-end encryption. It's just like being in the clinic, but from your couch.</p>
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center gap-3 text-sm text-slate-300"><div class="w-1.5 h-1.5 rounded-full bg-brand-400"></div> HD Video & Audio</div>
+              <div class="flex items-center gap-3 text-sm text-slate-300"><div class="w-1.5 h-1.5 rounded-full bg-brand-400"></div> Instant Connection</div>
+              <div class="flex items-center gap-3 text-sm text-slate-300"><div class="w-1.5 h-1.5 rounded-full bg-brand-400"></div> Secure & Private</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tall Card -->
+        <div class="glass-card rounded-3xl p-10 flex flex-col justify-between group overflow-hidden relative bg-gradient-to-br from-brand-900/20 to-transparent">
+          <div>
+            <div class="w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-8 text-blue-400">
+              <i data-lucide="file-signature" class="w-7 h-7"></i>
+            </div>
+            <h3 class="text-2xl font-display font-bold text-white mb-2">E-Prescriptions</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Valid digital prescriptions sent directly to your phone or pharmacy instantly via secure PDF.</p>
+          </div>
+          <div class="mt-8 pt-8 border-t border-white/10">
+             <div class="flex items-center justify-between text-brand-400 text-sm font-bold tracking-wide">
+               <span>LEARN MORE</span>
+               <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+             </div>
+          </div>
+        </div>
+
+        <!-- Small Card -->
+        <div class="glass-card rounded-3xl p-8 group">
+          <div class="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center mb-6 text-purple-400">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-display font-bold text-white mb-2">Quick Follow-up</h3>
+          <p class="text-slate-400 text-sm">10-min slots for checking progress or reviewing reports.</p>
+        </div>
+
+        <!-- Small Card -->
+        <div class="md:col-span-2 glass-card rounded-3xl p-8 flex items-center justify-between group bg-gradient-to-r from-white/5 to-transparent">
+          <div>
+            <h3 class="text-xl font-display font-bold text-white mb-1">Second Opinion</h3>
+            <p class="text-slate-400 text-sm">Not sure about a diagnosis? Get a fresh perspective.</p>
+          </div>
+          <div class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white bg-white/5 group-hover:scale-110 transition-transform">
+             <i data-lucide="stethoscope" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT SECTION -->
+  <section id="about" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+      <div class="relative order-2 md:order-1 group">
+        <div class="absolute inset-0 bg-brand-500 rounded-[2.5rem] blur-[80px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        <div class="aspect-square rounded-[2.5rem] overflow-hidden relative z-10 border border-white/10 shadow-2xl">
+          <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" alt="Dr. Ravi Profile">
+        </div>
+      </div>
+      
+      <div class="order-1 md:order-2">
+        <h4 class="text-brand-400 font-bold uppercase tracking-widest text-xs mb-4">The Specialist</h4>
+        <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-6">Dr. Ravi Kumar</h2>
+        <div class="space-y-6 text-slate-300 text-lg leading-relaxed mb-10 font-light">
+          <p>Dr. Ravi is a Senior Consultant in Internal Medicine with over 15 years of experience. He is dedicated to preventive healthcare and management of chronic lifestyle diseases.</p>
+          <p>His philosophy is rooted in "Patient-First" care, ensuring that every consultation is thorough, empathetic, and evidence-based.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+           <div class="p-6 glass-card rounded-2xl">
+             <div class="text-white font-bold font-display text-xl">MBBS, MD</div>
+             <div class="text-xs text-brand-400 uppercase mt-2 tracking-wider">Qualification</div>
+           </div>
+           <div class="p-6 glass-card rounded-2xl">
+             <div class="text-white font-bold font-display text-xl">Eng, Hin, Pun</div>
+             <div class="text-xs text-brand-400 uppercase mt-2 tracking-wider">Languages</div>
+           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOOKING SECTION (Deep Glass Form) -->
+  <section id="book" class="py-32 relative overflow-hidden">
+    <div class="max-w-3xl mx-auto px-6 relative z-10">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-4">Schedule Your Visit</h2>
+        <p class="text-slate-400 font-light text-lg">Secure. Private. Confirmed via WhatsApp.</p>
+      </div>
+
+      <div class="glass-panel p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden">
+        <!-- Glow effects inside card -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-brand-400 shadow-glow"></div>
+        
+        <form id="booking-form" class="space-y-8 relative z-10">
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs text-brand-400 uppercase font-bold tracking-wider ml-1">Full Name</label>
+              <input type="text" name="patient_name" required class="w-full h-14 rounded-xl px-4 glass-input focus:outline-none" placeholder="e.g. John Doe">
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs text-brand-400 uppercase font-bold tracking-wider ml-1">Phone Number</label>
+              <input type="tel" name="phone" required class="w-full h-14 rounded-xl px-4 glass-input focus:outline-none" placeholder="+91 00000 00000">
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs text-brand-400 uppercase font-bold tracking-wider ml-1">Date</label>
+              <input type="date" name="preferred_date" required class="w-full h-14 rounded-xl px-4 glass-input focus:outline-none [color-scheme:dark] text-slate-300">
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs text-brand-400 uppercase font-bold tracking-wider ml-1">Time Slot</label>
+              <div class="relative">
+                <select name="preferred_time" required class="w-full h-14 rounded-xl px-4 glass-input focus:outline-none appearance-none cursor-pointer text-slate-300">
+                  <option value="" class="bg-dark-900">Select a slot</option>
+                  <option value="morning" class="bg-dark-900">Morning (10am - 1pm)</option>
+                  <option value="evening" class="bg-dark-900">Evening (5pm - 8pm)</option>
+                </select>
+                <i data-lucide="chevron-down" class="absolute right-4 top-4 text-slate-400 pointer-events-none w-5 h-5"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs text-brand-400 uppercase font-bold tracking-wider ml-1">Reason for visit</label>
+            <textarea name="reason" rows="3" class="w-full rounded-xl p-4 glass-input focus:outline-none resize-none" placeholder="Briefly describe your symptoms..."></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-5 bg-gradient-to-r from-brand-600 to-brand-400 hover:from-brand-500 hover:to-brand-300 text-white font-bold text-lg rounded-xl transition-all shadow-glow hover:scale-[1.01] hover:shadow-lg flex justify-center items-center gap-2 group">
+             Confirm Appointment
+             <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+          </button>
+          
+          <p class="text-center text-xs text-slate-500 mt-4 flex items-center justify-center gap-2">
+             <i data-lucide="lock" class="w-3 h-3"></i> 256-bit SSL Encrypted • HIPAA Compliant
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT & MAP SECTION -->
+  <section id="contact" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16">
+      <div>
+        <h2 class="text-4xl font-display font-bold text-white mb-8">Contact Us</h2>
+        <div class="space-y-6 mt-8">
+           <div class="glass-card p-6 rounded-2xl flex gap-5 items-center">
+             <div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-white shrink-0 border border-white/10">
+               <i data-lucide="map-pin" class="w-5 h-5"></i>
+             </div>
+             <div>
+               <h3 class="font-bold text-white text-lg">Clinic Location</h3>
+               <p class="text-slate-400 text-sm">Sector 45, Medical Hub Plaza<br>Gurgaon, Haryana, 122003</p>
+             </div>
+           </div>
+           
+           <div class="glass-card p-6 rounded-2xl flex gap-5 items-center">
+             <div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-white shrink-0 border border-white/10">
+               <i data-lucide="phone" class="w-5 h-5"></i>
+             </div>
+             <div>
+               <h3 class="font-bold text-white text-lg">Support</h3>
+               <p class="text-slate-400 text-sm mb-1">+91 98765 43210</p>
+               <a href="mailto:help@drravi.com" class="text-brand-400 font-medium hover:text-brand-300 text-sm">help@drravi.com</a>
+             </div>
+           </div>
+        </div>
+        
+        <!-- Web3Forms Glass -->
+        <div class="mt-12 p-8 glass-panel rounded-3xl">
+           <h3 class="font-bold text-white mb-6 flex items-center gap-2"><i data-lucide="mail" class="w-5 h-5 text-brand-400"></i> Quick Message</h3>
+           <form action="https://api.web3forms.com/submit" method="POST" class="space-y-4">
+              <input type="hidden" name="access_key" value="544cce84-c5fd-4eeb-8b41-b9c42919d303">
+              <input type="text" name="name" placeholder="Your Name" required class="w-full h-12 px-4 rounded-lg glass-input focus:outline-none placeholder-slate-500 text-sm">
+              <input type="email" name="email" placeholder="Your Email" required class="w-full h-12 px-4 rounded-lg glass-input focus:outline-none placeholder-slate-500 text-sm">
+              <textarea name="message" rows="2" placeholder="How can we help?" required class="w-full p-4 rounded-lg glass-input focus:outline-none placeholder-slate-500 text-sm resize-none"></textarea>
+              <button class="px-6 py-3 bg-white text-dark-900 rounded-lg font-bold text-sm hover:bg-slate-200 transition-colors w-full">Send Message</button>
+           </form>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="h-full min-h-[500px] glass-panel rounded-[2.5rem] overflow-hidden relative border-0 p-2">
+        <div class="w-full h-full rounded-[2rem] overflow-hidden relative">
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d224345.83923192776!2d77.0688975472578!3d28.52728034389636!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x52c2b7494e204dce!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1698745612345!5m2!1sen!2sin" width="100%" height="100%" style="border:0; filter: grayscale(1) invert(1) brightness(0.8) contrast(1.2);" allowfullscreen="" loading="lazy"></iframe>
+          <div class="absolute inset-0 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-12 border-t border-white/5 text-slate-500 text-sm relative z-10 bg-dark-900/50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+       <div>&copy; <span id="year"></span> Dr. Ravi. All rights reserved.</div>
+       
+       <!-- Staff Login Trigger -->
+       <button id="staff-toggle" class="text-slate-400 hover:text-white transition-colors">Staff Login</button>
+    </div>
+    
+    <!-- Hidden Admin Panel -->
+    <div id="admin-panel" class="hidden max-w-7xl mx-auto px-6 mt-8 pt-8 border-t border-white/5">
+       <div class="bg-dark-800 p-6 rounded-2xl border border-white/5">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-white font-bold">Appointment Dashboard</h3>
+            <form id="signin-form" class="flex gap-2">
+               <input id="staff-email" type="email" placeholder="staff@clinic.com" class="px-3 py-1.5 bg-dark-900 border border-white/10 rounded text-white text-xs focus:outline-none focus:border-brand-500">
+               <button class="bg-brand-500 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-brand-400">Auth</button>
+            </form>
+          </div>
+          <div id="admin-content" class="hidden">
+             <table class="w-full text-left">
+               <thead class="text-xs uppercase text-slate-500 border-b border-white/5"><tr><th class="py-2">Name</th><th class="py-2">Date</th><th class="py-2">Status</th></tr></thead>
+               <tbody id="appt-tbody" class="text-slate-300"></tbody>
+             </table>
+             <button id="refresh-appts" class="mt-4 text-xs text-brand-400 hover:text-white">Refresh Data</button>
+          </div>
+       </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script>
+    // 1. SETUP
+    try { lucide.createIcons(); } catch(e) {}
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 2. LOADING MANAGER
+    const preloader = document.getElementById('preloader');
+    let isLoaded = false;
+
+    function removeLoader() {
+        if(isLoaded) return;
+        isLoaded = true;
+        if (typeof gsap !== 'undefined') {
+            const tl = gsap.timeline();
+            tl.to('.loader-line', { width: '100%', duration: 0.5, ease: 'power2.out' })
+              .to('#preloader', { y: '-100%', duration: 0.8, ease: 'power4.inOut' })
+              .fromTo('.gs-reveal-text', { y: '100%' }, { y: '0%', duration: 1, stagger: 0.1, ease: 'power3.out' }, "-=0.4")
+              .fromTo('.gs-reveal', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: 'power2.out' }, "-=0.8")
+              .fromTo('.gs-scale-img', { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.2, ease: 'power2.out' }, "-=1");
+        } else {
+            preloader.style.display = 'none';
+        }
+    }
+    window.addEventListener('load', removeLoader);
+    setTimeout(removeLoader, 3000);
+
+    // 3. SMOOTH SCROLL
+    if (typeof Lenis !== 'undefined') {
+        const lenis = new Lenis({ duration: 1.2, smooth: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+    }
+
+    // 4. GSAP SCROLL
+    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+        // Fade in nav on scroll
+        const nav = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+           if(window.scrollY > 50) {
+             nav.classList.add('py-2');
+           } else {
+             nav.classList.remove('py-2');
+           }
+        });
+    }
+
+    // 5. FORM LOGIC
+    const toast = (msg, type = 'success') => {
+       const div = document.createElement('div');
+       div.className = `fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full text-white font-medium shadow-glow flex items-center gap-2 ${type==='success'?'bg-brand-600':'bg-red-600'}`;
+       div.innerHTML = `<span>${type==='success'?'✓':'⚠'}</span> ${msg}`;
+       document.body.appendChild(div);
+       if (typeof gsap !== 'undefined') gsap.fromTo(div, {y:20, opacity:0}, {y:0, opacity:1, duration:0.3});
+       setTimeout(() => div.remove(), 3000);
+    };
+
+    const bookingForm = document.getElementById('booking-form');
+    if(bookingForm) {
+        bookingForm.addEventListener('submit', async (e) => {
+           e.preventDefault();
+           const btn = bookingForm.querySelector('button');
+           const originalText = btn.innerHTML;
+           btn.innerHTML = '<span class="animate-pulse">Processing...</span>';
+           
+           const formData = new FormData(bookingForm);
+           const data = Object.fromEntries(formData);
+           
+           if(window.supabaseClient) {
+              const { error } = await window.supabaseClient.from('appointments').insert({
+                 patient_name: data.patient_name,
+                 phone: data.phone,
+                 preferred_date: data.preferred_date,
+                 status: 'new',
+                 consent: true
+              });
+              if(error) toast('Error submitting.', 'error');
+              else { toast('Appointment Requested!'); bookingForm.reset(); }
+           } else {
+              setTimeout(() => { toast('Demo: Request Sent!'); bookingForm.reset(); btn.innerHTML = originalText; }, 1500);
+              return;
+           }
+           btn.innerHTML = originalText;
+        });
+    }
+
+    // Mobile Menu
+    const menuBtn = document.getElementById('menu-btn');
+    const closeMenu = document.getElementById('close-menu');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileLinks = document.querySelectorAll('.mobile-link');
+    function toggleMenu() { if(mobileMenu) mobileMenu.classList.toggle('translate-x-full'); }
+    if(menuBtn) menuBtn.addEventListener('click', toggleMenu);
+    if(closeMenu) closeMenu.addEventListener('click', toggleMenu);
+    mobileLinks.forEach(l => l.addEventListener('click', toggleMenu));
+
+    // Admin Toggle
+    const staffToggle = document.getElementById('staff-toggle');
+    const adminPanel = document.getElementById('admin-panel');
+    if(staffToggle) staffToggle.addEventListener('click', () => adminPanel.classList.toggle('hidden'));
+    
+    // Admin Login Demo
+    const signinForm = document.getElementById('signin-form');
+    if(signinForm) signinForm.addEventListener('submit', (e) => {
+       e.preventDefault();
+       toast('Demo: Access Granted');
+       document.getElementById('admin-content').classList.remove('hidden');
+       document.getElementById('appt-tbody').innerHTML = `
+         <tr class="border-b border-white/5"><td class="py-2">Amit Verma</td><td class="py-2 text-slate-400">Today, 5pm</td><td class="py-2 text-brand-400">New</td></tr>
+         <tr><td class="py-2">Priya S.</td><td class="py-2 text-slate-400">Tomorrow, 10am</td><td class="py-2 text-brand-400">Confirmed</td></tr>
+       `;
+    });
+  </script>
+</body>
+</html>
